@@ -1,0 +1,3 @@
+[submodule "lib/mik64_logger"]
+	path = lib/mik64_logger
+	url = https://github.com/64mik/mik64-logger.git
