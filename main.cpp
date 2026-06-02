@@ -7,7 +7,7 @@
 int main(){
     std::map<std::string, std::string> templateMap = {
         {"box", "<div class=\"box\">|</div>"},
-        {"link", "<a href=\"{{data}}\">|</a>"},
+        {"link", "<a href=\"{{data}}\">{{data}}</a>|"},
         {"bold", "<strong>|</strong>"},
         {"p", "<p>|</p>"},
         {"li", "<li>|</li>"},

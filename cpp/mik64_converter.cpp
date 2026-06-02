@@ -16,8 +16,8 @@ std::ostringstream Converter::convert(const std::string& str) {
     std::istringstream iss(str);
     std::ostringstream result;
     std::string line;
-    std::pair<std::string, std::string> tag;
-    std::string element;
+    std::pair<std::string, std::string> tag;    //<open>|<close>
+    std::string element;    //box, list, p etc. from templateMap
 
     while (std::getline(iss, line)) {
         //del front whitespace
@@ -58,27 +58,58 @@ std::ostringstream Converter::convert(const std::string& str) {
                 continue;
             }
         }
-
-        //function
-        /*
+        //macro
         if (line.find(markers_.func_start_marker) != std::string::npos ) {
+            element = line.substr(0, line.find(markers_.func_start_marker));
+            element.erase(element.find_last_not_of(" \t") + 1);
             size_t startPos = line.find(markers_.func_start_marker);
             size_t endPos = line.find(markers_.func_end_marker);
-
-            if(templateMap_[line.substr(0, startPos)]!="" && endPos != std::string::npos){
-                std::string prameter = line.substr(startPos + 1, endPos - startPos - 1);
-                //'('와 ')' 사이의 문자열을 prameter로 추출 후 리스트로 변환하는 과정 필요
-                //일단 그냥 출력으로
-                append(result, templateMap_[line.substr(0, startPos)], tagStack_.size());
-                MLOG_INFO("Found function: " + line.substr(0, startPos) + " with parameter: " + prameter);
+            if(templateMap_[element]!="" && endPos != std::string::npos){
+                tag = getTag(element);
+                std::string macroLine = tag.first+tag.second;
+                std::string parameters = line.substr(startPos + 1, endPos - startPos - 1);
+                MLOG_INFO("Processing macro: " + line.substr(0, startPos) + " with parameters: " + parameters);
+                while (!parameters.empty()) {
+                    size_t commaPos = parameters.find(",");
+                    std::string item;
+                    item = parameters.substr(0, commaPos);
+                    MLOG_INFO("Parameter: " + item);
+                    size_t pos = macroLine.find("{{data}}");
+                    //replace first occurrence of {{data}} with item
+                    if(pos != std::string::npos){
+                        macroLine = macroLine.replace(pos, 8, item);
+                    }
+                    //not enough placeholder
+                    else{
+                        MLOG_WARNING("Placeholder {{data}} is less than expected: " + macroLine);
+                        break;
+                    }
+                    //remove processed parameter
+                    if(commaPos != std::string::npos){
+                        parameters = parameters.substr(commaPos + 1);
+                    }
+                }
+                //not enough parameters
+                if(macroLine.find("{{data}}") != std::string::npos){
+                    MLOG_WARNING("parameters are less than required for placeholders: " + macroLine);
+                    while(macroLine.find("{{data}}") != std::string::npos){
+                        macroLine = macroLine.replace(macroLine.find("{{data}}"), 8, "");
+                    }
+                }
+                //use unknown macro
+                if(macroLine == tag.first+tag.second){
+                    MLOG_INFO("unknown macro: " + line);
+                    append(result, line, tagStack_.size());
+                    continue;
+                }
+                append(result, macroLine, tagStack_.size());
             }
             continue;
         }   
-        */
-        
 
+        //normal line
         tag = getChildTag(tagStack_.empty() ? "" : tagStack_.back());
-        append(result, tag.first + line + tag.second, tagStack_.size());    //테그가 없는 일반 텍스트는 그대로 출력
+        append(result, tag.first + line + tag.second, tagStack_.size());
     }
     return result;
 }
@@ -94,12 +125,6 @@ void Converter::append(std::ostringstream& src, const std::string& str, int inde
     }
     MLOG_INFO("Appending line: " + str + " with indentation: " + std::to_string(indent));
     src << str << "\n";
-}
-
-void Converter::replace(std::string& s, const std::string& key, const std::string& value) {
-    size_t pos;
-    while ((pos = s.find(key)) != std::string::npos)
-        s.replace(pos, key.length(), value);
 }
 //get open and close tag from templateMap
 std::pair<std::string, std::string> Converter::getTag(const std::string& tag){

@@ -15,7 +15,6 @@ namespace mik64 {
             }
         private:
             void append(std::ostringstream& oss, const std::string& str, int indent = 0);
-            void replace(std::string& s, const std::string& key, const std::string& value);
             std::pair<std::string, std::string> getTag(const std::string& tag);
             std::pair<std::string, std::string> getChildTag(const std::string& tag);
             std::map<std::string, std::string> templateMap_;
