@@ -8,10 +8,17 @@ int main(){
     std::map<std::string, std::string> templateMap = {
         {"box", "<div class=\"box\">|</div>"},
         {"link", "<a href=\"{{data}}\">|</a>"},
+        {"bold", "<strong>|</strong>"},
         {"p", "<p>|</p>"},
-        {"list", "<ol>|</ol>"}
+        {"li", "<li>|</li>"},
+        {"list", "<ul>|</ul>"}
     };
-    mik64::Converter c(templateMap, true, 1);
+    std::map<std::string, std::string> childElementMap = {
+        {"", "p"},
+        {"list", "li"},
+        {"bold", ""}
+    };
+    mik64::Converter c(templateMap, childElementMap, true, 1);
     std::ifstream file("input/test.md");
     std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     std::ostringstream result = c.convert(content);

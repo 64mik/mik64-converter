@@ -4,7 +4,7 @@
 namespace mik64 {
 
 //public:
-Converter::Converter(const std::map<std::string, std::string>& templateMap, bool tagIndentation, int defaultIndentation) : templateMap_(templateMap), tagIndentation_(tagIndentation), defaultIndentation_(defaultIndentation) {
+Converter::Converter(const std::map<std::string, std::string>& templateMap, const std::map<std::string, std::string>& childElementMap, bool tagIndentation, int defaultIndentation) : templateMap_(templateMap), childElementMap_(childElementMap), tagIndentation_(tagIndentation), defaultIndentation_(defaultIndentation) {
     mik64::Logger::getInstance().setWriters(mik64::LoggerFactory::getWriters({"console", "file"}));
     MLOG_INFO("Converter initialized.");
 }
@@ -40,7 +40,7 @@ std::ostringstream Converter::convert(const std::string& str) {
                 MLOG_INFO("Found tag: " + element);
                 tag = getTag(element);
                 append(result, tag.first, tagStack_.size());
-                tagStack_.push_back(tag);
+                tagStack_.push_back(element);
                 continue;
             }
             else{
@@ -52,7 +52,8 @@ std::ostringstream Converter::convert(const std::string& str) {
         //close tag
         else if (line.find(markers_.end_marker) != std::string::npos) {
             if (!tagStack_.empty()) {
-                append(result, tagStack_.back().second, tagStack_.size()-1);
+                tag = getTag(tagStack_.back());
+                append(result, tag.second, tagStack_.size()-1);
                 tagStack_.pop_back();
                 continue;
             }
@@ -74,7 +75,10 @@ std::ostringstream Converter::convert(const std::string& str) {
             continue;
         }   
         */
-        append(result, line, tagStack_.size());    //테그가 없는 일반 텍스트는 그대로 출력
+        
+
+        tag = getChildTag(tagStack_.empty() ? "" : tagStack_.back());
+        append(result, tag.first + line + tag.second, tagStack_.size());    //테그가 없는 일반 텍스트는 그대로 출력
     }
     return result;
 }
@@ -106,10 +110,23 @@ std::pair<std::string, std::string> Converter::getTag(const std::string& tag){
         openTag = it->second.substr(0, pos);
         closeTag = it->second.substr(pos + 1);
     } else {
-        //p 나 li 등을 붙여주는 기능 추가 필요
+        MLOG_WARNING("Tag not found in templateMap: " + tag);
         openTag = "";
         closeTag = "";
     }
     return std::make_pair(openTag, closeTag);
 }
+std::pair<std::string, std::string> Converter::getChildTag(const std::string& tag){
+    std::string openTag, closeTag, element;
+    auto it = childElementMap_.find(tag);
+    if(it != childElementMap_.end()) {
+        element = it->second;
+    } else {
+        element = childElementMap_[""];
+    }
+    openTag = templateMap_[element].substr(0, templateMap_[element].find("|"));
+    closeTag = templateMap_[element].substr(templateMap_[element].find("|") + 1);
+    return std::make_pair(openTag, closeTag);
+}
+
 }
