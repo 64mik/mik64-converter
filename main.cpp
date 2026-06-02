@@ -11,7 +11,7 @@ int main(){
         {"p", "<p>|</p>"},
         {"list", "<ol>|</ol>"}
     };
-    mik64::Converter c(templateMap);
+    mik64::Converter c(templateMap, true, 1);
     std::ifstream file("input/test.md");
     std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     std::ostringstream result = c.convert(content);
