@@ -5,7 +5,7 @@ namespace mik64 {
 
 //public:
 Converter::Converter(const std::map<std::string, std::string>& templateMap, const std::map<std::string, std::string>& childElementMap, bool tagIndentation, int defaultIndentation, bool fallbackToRawText) : templateMap_(templateMap), childElementMap_(childElementMap), tagIndentation_(tagIndentation), defaultIndentation_(defaultIndentation), fallbackToRawText_(fallbackToRawText) {
-    mik64::Logger::getInstance().setWriters(mik64::LoggerFactory::getWriters({"console", "file"}));
+    mik64::Logger::getInstance().setWriters(mik64::LoggerFactory::getWriters({"file"}));
     MLOG_INFO("Converter initialized.");
 }
 Converter::~Converter() {
