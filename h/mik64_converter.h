@@ -7,9 +7,9 @@ namespace mik64 {
     class Converter {
         public: 
             Converter() = delete;
-            Converter(const std::map<std::string, std::string>& templateMap, const std::map<std::string, std::string>& childElementMap, bool tagIndentation = true, int defaultIndentation = 0);
+            Converter(const std::map<std::string, std::string>& templateMap, const std::map<std::string, std::string>& childElementMap, bool tagIndentation = true, int defaultIndentation = 0, bool fallbackToRawText = false);
             ~Converter();
-            std::ostringstream convert(const std::string& string);
+            std::ostringstream convert(const std::string& string);  //to string_view
             inline void setTemplateMap(const std::map<std::string, std::string>& templateMap) {
                 templateMap_ = templateMap;
             }
@@ -28,6 +28,7 @@ namespace mik64 {
                 std::string ignore_marker="//";
             } markers_;
             bool tagIndentation_ = true;
+            bool fallbackToRawText_ = false;
             int defaultIndentation_ = 0;
 };
 }

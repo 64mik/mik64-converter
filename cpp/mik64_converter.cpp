@@ -4,7 +4,7 @@
 namespace mik64 {
 
 //public:
-Converter::Converter(const std::map<std::string, std::string>& templateMap, const std::map<std::string, std::string>& childElementMap, bool tagIndentation, int defaultIndentation) : templateMap_(templateMap), childElementMap_(childElementMap), tagIndentation_(tagIndentation), defaultIndentation_(defaultIndentation) {
+Converter::Converter(const std::map<std::string, std::string>& templateMap, const std::map<std::string, std::string>& childElementMap, bool tagIndentation, int defaultIndentation, bool fallbackToRawText) : templateMap_(templateMap), childElementMap_(childElementMap), tagIndentation_(tagIndentation), defaultIndentation_(defaultIndentation), fallbackToRawText_(fallbackToRawText) {
     mik64::Logger::getInstance().setWriters(mik64::LoggerFactory::getWriters({"console", "file"}));
     MLOG_INFO("Converter initialized.");
 }
@@ -41,13 +41,14 @@ std::ostringstream Converter::convert(const std::string& str) {
                 tag = getTag(element);
                 append(result, tag.first, tagStack_.size());
                 tagStack_.push_back(element);
-                continue;
             }
             else{
                 MLOG_WARNING("Tag not found: " + element);
-                append(result, line, tagStack_.size());
-                continue;
+                if(fallbackToRawText_){
+                    append(result, line, tagStack_.size());
+                }
             }
+            continue;
         }
         //close tag
         else if (line.find(markers_.end_marker) != std::string::npos) {
@@ -55,8 +56,11 @@ std::ostringstream Converter::convert(const std::string& str) {
                 tag = getTag(tagStack_.back());
                 append(result, tag.second, tagStack_.size()-1);
                 tagStack_.pop_back();
-                continue;
             }
+            if (fallbackToRawText_){
+                append(result, markers_.end_marker, tagStack_.size()-1);
+            }
+            continue;
         }
         //macro
         if (line.find(markers_.func_start_marker) != std::string::npos ) {
@@ -103,6 +107,12 @@ std::ostringstream Converter::convert(const std::string& str) {
                     continue;
                 }
                 append(result, macroLine, tagStack_.size());
+            }
+            //unknown tag
+            else{
+                if(fallbackToRawText_){
+                    append(result, line, tagStack_.size()-1);
+                }
             }
             continue;
         }   
