@@ -23,8 +23,8 @@ std::map<std::string, std::string> text_templateMap = {
 };
 
 auto test(int count){
-    mik64::Converter html_c(html_templateMap, childElementMap, true, 1);
-    mik64::Converter text_c(text_templateMap, text_templateMap, false, 0, true);
+    mik64::Converter html_c(html_templateMap, childElementMap, true, 1, false);
+    mik64::Converter text_c(text_templateMap, text_templateMap, false, 0, false);
     std::ifstream file("input/test.md");
     std::ofstream outFile("output/output.html");
     std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
